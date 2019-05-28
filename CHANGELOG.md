@@ -1,6 +1,12 @@
 Changelog
 ------------
 
+### 1.8.2
+* ✨ Deprecated grid props `overscanColumnsCount` and `overscanRowsCount` props in favor of more consistently named `overscanColumnCount` and `overscanRowCount`. ([nihgwu](https://github.com/nihgwu) - [#229](https://github.com/bvaughn/react-window/pull/229))
+* 🐛 Fixed shaky elastic scroll problems present in iOS Safari. [#244](https://github.com/bvaughn/react-window/issues/244)
+* 🐛 Fixed RTL edge case bugs and broken scroll-to-item behavior. [#159](https://github.com/bvaughn/react-window/issues/159)
+* 🐛 Fixed broken synchronized scrolling for RTL lists/grids. [#198](https://github.com/bvaughn/react-window/issues/198)
+
 ### 1.8.1
 * 🐛 Replaced an incorrect empty-string value for `pointer-events` with `undefined` ([oliviertassinari](https://github.com/oliviertassinari) - [#210](https://github.com/bvaughn/react-window/pull/210))
 
