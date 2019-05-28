@@ -558,7 +558,7 @@ function createGridComponent(_ref2) {
           style: {
             height: _topLeftStyle3.top,
             width: _topLeftStyle3.left,
-            position: 'fixed',
+            position: 'absolute',
             zIndex: 100001,
             background: 'rgb(255, 255, 255)'
           }
