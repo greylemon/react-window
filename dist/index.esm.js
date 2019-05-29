@@ -53,6 +53,39 @@ function getScrollbarSize(recalculate) {
 
   return size;
 }
+var cachedRTLResult = null; // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
+// Chrome does not seem to adhere; its scrollLeft values are positive (measured relative to the left).
+// Safari's elastic bounce makes detecting this even more complicated wrt potential false positives.
+// The safest way to check this is to intentionally set a negative offset,
+// and then verify that the subsequent "scroll" event matches the negative offset.
+// If it does not match, then we can assume a non-standard RTL scroll implementation.
+
+function isRTLOffsetNegative(recalculate) {
+  if (recalculate === void 0) {
+    recalculate = false;
+  }
+
+  if (cachedRTLResult === null || recalculate) {
+    var outerDiv = document.createElement('div');
+    var outerStyle = outerDiv.style;
+    outerStyle.width = '50px';
+    outerStyle.height = '50px';
+    outerStyle.overflow = 'scroll';
+    outerStyle.direction = 'rtl';
+    var innerDiv = document.createElement('div');
+    var innerStyle = innerDiv.style;
+    innerStyle.width = '100px';
+    innerStyle.height = '100px';
+    outerDiv.appendChild(innerDiv);
+    document.body.appendChild(outerDiv);
+    outerDiv.scrollLeft = -10;
+    cachedRTLResult = outerDiv.scrollLeft === -10;
+    document.body.removeChild(outerDiv);
+    return cachedRTLResult;
+  }
+
+  return cachedRTLResult;
+}
 
 var IS_SCROLLING_DEBOUNCE_INTERVAL = 150;
 
@@ -66,11 +99,15 @@ var defaultItemKey = function defaultItemKey(_ref) {
 
 
 var devWarningsOverscanCount = null;
+var devWarningsOverscanRowsColumnsCount = null;
 var devWarningsTagName = null;
 
 if (process.env.NODE_ENV !== 'production') {
   if (typeof window !== 'undefined' && typeof window.WeakSet !== 'undefined') {
     devWarningsOverscanCount =
+    /*#__PURE__*/
+    new WeakSet();
+    devWarningsOverscanRowsColumnsCount =
     /*#__PURE__*/
     new WeakSet();
     devWarningsTagName =
@@ -177,9 +214,11 @@ function createGridComponent(_ref2) {
 
       _this._onScroll = function (event) {
         var _event$currentTarget = event.currentTarget,
+            clientHeight = _event$currentTarget.clientHeight,
             clientWidth = _event$currentTarget.clientWidth,
             scrollLeft = _event$currentTarget.scrollLeft,
             scrollTop = _event$currentTarget.scrollTop,
+            scrollHeight = _event$currentTarget.scrollHeight,
             scrollWidth = _event$currentTarget.scrollWidth;
 
         _this.setState(function (prevState) {
@@ -190,25 +229,30 @@ function createGridComponent(_ref2) {
             return null;
           }
 
-          var direction = _this.props.direction; // HACK According to the spec, scrollLeft should be negative for RTL aligned elements.
-          // Chrome does not seem to adhere; its scrollLeft values are positive (measured relative to the left).
-          // See https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollLeft
-
+          var direction = _this.props.direction;
           var calculatedScrollLeft = scrollLeft;
 
           if (direction === 'rtl') {
-            if (scrollLeft <= 0) {
+            var isNegative = isRTLOffsetNegative(); // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
+            // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
+            // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
+            // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
+
+            if (isNegative) {
               calculatedScrollLeft = -scrollLeft;
             } else {
               calculatedScrollLeft = scrollWidth - clientWidth - scrollLeft;
             }
-          }
+          } // Prevent Safari's elastic scrolling from causing visual shaking when scrolling past bounds.
 
+
+          calculatedScrollLeft = Math.max(0, Math.min(calculatedScrollLeft, scrollWidth - clientWidth));
+          var calculatedScrollTop = Math.max(0, Math.min(scrollTop, scrollHeight - clientHeight));
           return {
             isScrolling: true,
             horizontalScrollDirection: prevState.scrollLeft < scrollLeft ? 'forward' : 'backward',
             scrollLeft: calculatedScrollLeft,
-            scrollTop: scrollTop,
+            scrollTop: calculatedScrollTop,
             verticalScrollDirection: prevState.scrollTop < scrollTop ? 'forward' : 'backward',
             scrollUpdateWasRequested: false
           };
@@ -333,26 +377,49 @@ function createGridComponent(_ref2) {
           initialScrollLeft = _this$props3.initialScrollLeft,
           initialScrollTop = _this$props3.initialScrollTop;
 
-      if (typeof initialScrollLeft === 'number' && this._outerRef != null) {
-        this._outerRef.scrollLeft = initialScrollLeft;
-      }
+      if (this._outerRef != null) {
+        var outerRef = this._outerRef;
 
-      if (typeof initialScrollTop === 'number' && this._outerRef != null) {
-        this._outerRef.scrollTop = initialScrollTop;
+        if (typeof initialScrollLeft === 'number') {
+          outerRef.scrollLeft = initialScrollLeft;
+        }
+
+        if (typeof initialScrollTop === 'number') {
+          outerRef.scrollTop = initialScrollTop;
+        }
       }
 
       this._callPropsCallbacks();
     };
 
     _proto.componentDidUpdate = function componentDidUpdate() {
+      var direction = this.props.direction;
       var _this$state2 = this.state,
           scrollLeft = _this$state2.scrollLeft,
           scrollTop = _this$state2.scrollTop,
           scrollUpdateWasRequested = _this$state2.scrollUpdateWasRequested;
 
-      if (scrollUpdateWasRequested && this._outerRef !== null) {
-        this._outerRef.scrollLeft = scrollLeft;
-        this._outerRef.scrollTop = scrollTop;
+      if (scrollUpdateWasRequested && this._outerRef != null) {
+        // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
+        // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
+        // So we need to determine which browser behavior we're dealing with, and mimic it.
+        var outerRef = this._outerRef;
+
+        if (direction === 'rtl') {
+          var isNegative = isRTLOffsetNegative();
+
+          if (isNegative) {
+            outerRef.scrollLeft = -scrollLeft;
+          } else {
+            var clientWidth = outerRef.clientWidth,
+                scrollWidth = outerRef.scrollWidth;
+            outerRef.scrollLeft = scrollWidth - clientWidth - scrollLeft;
+          }
+        } else {
+          outerRef.scrollLeft = Math.max(0, scrollLeft);
+        }
+
+        outerRef.scrollTop = Math.max(0, scrollTop);
       }
 
       this._callPropsCallbacks();
@@ -382,7 +449,8 @@ function createGridComponent(_ref2) {
           rowCount = _this$props4.rowCount,
           style = _this$props4.style,
           useIsScrolling = _this$props4.useIsScrolling,
-          width = _this$props4.width;
+          width = _this$props4.width,
+          extraScrollableElement = _this$props4.extraScrollableElement;
       var freezeRowCount = this.props.freezeRowCount || 0;
       var freezeColumnCount = this.props.freezeColumnCount || 0;
       var isScrolling = this.state.isScrolling;
@@ -547,7 +615,7 @@ function createGridComponent(_ref2) {
           pointerEvents: isScrolling ? 'none' : undefined,
           width: estimatedTotalWidth
         }
-      }));
+      }), extraScrollableElement);
 
       if (freezeTopLeftItems.length) {
         var _topLeftStyle3 = this._getItemStyle(freezeRowCount, freezeColumnCount);
@@ -612,6 +680,7 @@ function createGridComponent(_ref2) {
     _proto._getHorizontalRangeToRender = function _getHorizontalRangeToRender() {
       var _this$props6 = this.props,
           columnCount = _this$props6.columnCount,
+          overscanColumnCount = _this$props6.overscanColumnCount,
           overscanColumnsCount = _this$props6.overscanColumnsCount,
           overscanCount = _this$props6.overscanCount,
           rowCount = _this$props6.rowCount;
@@ -619,7 +688,7 @@ function createGridComponent(_ref2) {
           horizontalScrollDirection = _this$state4.horizontalScrollDirection,
           isScrolling = _this$state4.isScrolling,
           scrollLeft = _this$state4.scrollLeft;
-      var overscanCountResolved = overscanColumnsCount || overscanCount || 1;
+      var overscanCountResolved = overscanColumnCount || overscanColumnsCount || overscanCount || 1;
 
       if (columnCount === 0 || rowCount === 0) {
         return [0, 0, 0, 0];
@@ -638,13 +707,14 @@ function createGridComponent(_ref2) {
       var _this$props7 = this.props,
           columnCount = _this$props7.columnCount,
           overscanCount = _this$props7.overscanCount,
+          overscanRowCount = _this$props7.overscanRowCount,
           overscanRowsCount = _this$props7.overscanRowsCount,
           rowCount = _this$props7.rowCount;
       var _this$state5 = this.state,
           isScrolling = _this$state5.isScrolling,
           verticalScrollDirection = _this$state5.verticalScrollDirection,
           scrollTop = _this$state5.scrollTop;
-      var overscanCountResolved = overscanRowsCount || overscanCount || 1;
+      var overscanCountResolved = overscanRowCount || overscanRowsCount || overscanCount || 1;
 
       if (columnCount === 0 || rowCount === 0) {
         return [0, 0, 0, 0];
@@ -673,7 +743,9 @@ var validateSharedProps = function validateSharedProps(_ref5, _ref6) {
       height = _ref5.height,
       innerTagName = _ref5.innerTagName,
       outerTagName = _ref5.outerTagName,
+      overscanColumnsCount = _ref5.overscanColumnsCount,
       overscanCount = _ref5.overscanCount,
+      overscanRowsCount = _ref5.overscanRowsCount,
       width = _ref5.width;
   var instance = _ref6.instance;
 
@@ -681,7 +753,14 @@ var validateSharedProps = function validateSharedProps(_ref5, _ref6) {
     if (typeof overscanCount === 'number') {
       if (devWarningsOverscanCount && !devWarningsOverscanCount.has(instance)) {
         devWarningsOverscanCount.add(instance);
-        console.warn('The overscanCount prop has been deprecated. ' + 'Please use the overscanColumnsCount and overscanRowsCount props instead.');
+        console.warn('The overscanCount prop has been deprecated. ' + 'Please use the overscanColumnCount and overscanRowCount props instead.');
+      }
+    }
+
+    if (typeof overscanColumnsCount === 'number' || typeof overscanRowsCount === 'number') {
+      if (devWarningsOverscanRowsColumnsCount && !devWarningsOverscanRowsColumnsCount.has(instance)) {
+        devWarningsOverscanRowsColumnsCount.add(instance);
+        console.warn('The overscanColumnsCount and overscanRowsCount props have been deprecated. ' + 'Please use the overscanColumnCount and overscanRowCount props instead.');
       }
     }
 
@@ -1157,20 +1236,24 @@ function createListComponent(_ref) {
             return null;
           }
 
-          var direction = _this.props.direction; // HACK According to the spec, scrollLeft should be negative for RTL aligned elements.
-          // Chrome does not seem to adhere; its scrolLeft values are positive (measured relative to the left).
-          // See https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollLeft
-
+          var direction = _this.props.direction;
           var scrollOffset = scrollLeft;
 
           if (direction === 'rtl') {
-            if (scrollLeft <= 0) {
-              scrollOffset = -scrollOffset;
+            var isNegative = isRTLOffsetNegative(); // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
+            // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
+            // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
+            // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
+
+            if (isNegative) {
+              scrollOffset = -scrollLeft;
             } else {
               scrollOffset = scrollWidth - clientWidth - scrollLeft;
             }
-          }
+          } // Prevent Safari's elastic scrolling from causing visual shaking when scrolling past bounds.
 
+
+          scrollOffset = Math.max(0, Math.min(scrollOffset, scrollWidth - clientWidth));
           return {
             isScrolling: true,
             scrollDirection: prevState.scrollOffset < scrollLeft ? 'forward' : 'backward',
@@ -1181,7 +1264,10 @@ function createListComponent(_ref) {
       };
 
       _this._onScrollVertical = function (event) {
-        var scrollTop = event.currentTarget.scrollTop;
+        var _event$currentTarget2 = event.currentTarget,
+            clientHeight = _event$currentTarget2.clientHeight,
+            scrollHeight = _event$currentTarget2.scrollHeight,
+            scrollTop = _event$currentTarget2.scrollTop;
 
         _this.setState(function (prevState) {
           if (prevState.scrollOffset === scrollTop) {
@@ -1189,12 +1275,14 @@ function createListComponent(_ref) {
             // In which case we don't need to trigger another render,
             // And we don't want to update state.isScrolling.
             return null;
-          }
+          } // Prevent Safari's elastic scrolling from causing visual shaking when scrolling past bounds.
 
+
+          var scrollOffset = Math.max(0, Math.min(scrollTop, scrollHeight - clientHeight));
           return {
             isScrolling: true,
-            scrollDirection: prevState.scrollOffset < scrollTop ? 'forward' : 'backward',
-            scrollOffset: scrollTop,
+            scrollDirection: prevState.scrollOffset < scrollOffset ? 'forward' : 'backward',
+            scrollOffset: scrollOffset,
             scrollUpdateWasRequested: false
           };
         }, _this._resetIsScrollingDebounced);
@@ -1274,12 +1362,13 @@ function createListComponent(_ref) {
           initialScrollOffset = _this$props2.initialScrollOffset,
           layout = _this$props2.layout;
 
-      if (typeof initialScrollOffset === 'number' && this._outerRef !== null) {
-        // TODO Deprecate direction "horizontal"
+      if (typeof initialScrollOffset === 'number' && this._outerRef != null) {
+        var outerRef = this._outerRef; // TODO Deprecate direction "horizontal"
+
         if (direction === 'horizontal' || layout === 'horizontal') {
-          this._outerRef.scrollLeft = initialScrollOffset;
+          outerRef.scrollLeft = initialScrollOffset;
         } else {
-          this._outerRef.scrollTop = initialScrollOffset;
+          outerRef.scrollTop = initialScrollOffset;
         }
       }
 
@@ -1294,12 +1383,28 @@ function createListComponent(_ref) {
           scrollOffset = _this$state.scrollOffset,
           scrollUpdateWasRequested = _this$state.scrollUpdateWasRequested;
 
-      if (scrollUpdateWasRequested && this._outerRef !== null) {
-        // TODO Deprecate direction "horizontal"
+      if (scrollUpdateWasRequested && this._outerRef != null) {
+        var outerRef = this._outerRef; // TODO Deprecate direction "horizontal"
+
         if (direction === 'horizontal' || layout === 'horizontal') {
-          this._outerRef.scrollLeft = scrollOffset;
+          if (direction === 'rtl') {
+            // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
+            // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
+            // So we need to determine which browser behavior we're dealing with, and mimic it.
+            var isNegative = isRTLOffsetNegative();
+
+            if (isNegative) {
+              outerRef.scrollLeft = -scrollOffset;
+            } else {
+              var clientWidth = outerRef.clientWidth,
+                  scrollWidth = outerRef.scrollWidth;
+              outerRef.scrollLeft = scrollWidth - clientWidth - scrollOffset;
+            }
+          } else {
+            outerRef.scrollLeft = scrollOffset;
+          }
         } else {
-          this._outerRef.scrollTop = scrollOffset;
+          outerRef.scrollTop = scrollOffset;
         }
       }
 

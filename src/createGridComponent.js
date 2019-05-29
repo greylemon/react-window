@@ -81,6 +81,7 @@ export type Props<T> = {|
   width: number,
   freezeRowCount?: number,
   freezeColumnCount?: number,
+  extraScrollableElement?: React$Component,
 |};
 
 type State = {|
@@ -391,6 +392,7 @@ export default function createGridComponent({
         style,
         useIsScrolling,
         width,
+        extraScrollableElement,
       } = this.props;
       const freezeRowCount = this.props.freezeRowCount || 0;
       const freezeColumnCount = this.props.freezeColumnCount || 0;
@@ -590,7 +592,8 @@ export default function createGridComponent({
             pointerEvents: isScrolling ? 'none' : undefined,
             width: estimatedTotalWidth,
           },
-        })
+        }),
+        extraScrollableElement
       );
 
       if (freezeTopLeftItems.length) {
