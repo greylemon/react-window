@@ -81,7 +81,10 @@ export type Props<T> = {|
   width: number,
   freezeRowCount?: number,
   freezeColumnCount?: number,
-  extraScrollableElement?: React$Element<any>,
+  extraBottomRightElement?: React$Element<any>,
+  extraBottomLeftElement?: React$Element<any>,
+  extraTopLeftElement?: React$Element<any>,
+  extraTopRightElement?: React$Element<any>,
 |};
 
 type State = {|
@@ -392,7 +395,10 @@ export default function createGridComponent({
         style,
         useIsScrolling,
         width,
-        extraScrollableElement,
+        extraBottomRightElement,
+        extraBottomLeftElement,
+        extraTopLeftElement,
+        extraTopRightElement,
       } = this.props;
       const freezeRowCount = this.props.freezeRowCount || 0;
       const freezeColumnCount = this.props.freezeColumnCount || 0;
@@ -452,6 +458,8 @@ export default function createGridComponent({
             );
           }
         }
+        if (extraTopRightElement)
+          freezeTopRightItems.push(extraTopRightElement);
       }
 
       // freeze column (bottom-left pane)
@@ -487,6 +495,8 @@ export default function createGridComponent({
             );
           }
         }
+        if (extraBottomLeftElement)
+          freezeBottomLeftItems.push(extraBottomLeftElement);
       }
 
       // freeze top-left pane
@@ -509,6 +519,7 @@ export default function createGridComponent({
             );
           }
         }
+        if (extraTopLeftElement) freezeTopLeftItems.push(extraTopLeftElement);
       }
 
       // Read this value AFTER items have been created,
@@ -593,7 +604,7 @@ export default function createGridComponent({
             width: estimatedTotalWidth,
           },
         }),
-        extraScrollableElement
+        extraBottomRightElement
       );
 
       if (freezeTopLeftItems.length) {
