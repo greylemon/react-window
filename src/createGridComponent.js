@@ -81,7 +81,7 @@ export type Props<T> = {|
   width: number,
   freezeRowCount?: number,
   freezeColumnCount?: number,
-  extraScrollableElement?: React$Component,
+  extraScrollableElement?: React$Element<any>,
 |};
 
 type State = {|
