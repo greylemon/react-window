@@ -450,7 +450,10 @@ function createGridComponent(_ref2) {
           style = _this$props4.style,
           useIsScrolling = _this$props4.useIsScrolling,
           width = _this$props4.width,
-          extraScrollableElement = _this$props4.extraScrollableElement;
+          extraBottomRightElement = _this$props4.extraBottomRightElement,
+          extraBottomLeftElement = _this$props4.extraBottomLeftElement,
+          extraTopLeftElement = _this$props4.extraTopLeftElement,
+          extraTopRightElement = _this$props4.extraTopRightElement;
       var freezeRowCount = this.props.freezeRowCount || 0;
       var freezeColumnCount = this.props.freezeColumnCount || 0;
       var isScrolling = this.state.isScrolling;
@@ -505,6 +508,8 @@ function createGridComponent(_ref2) {
             }));
           }
         }
+
+        if (extraTopRightElement) freezeTopRightItems.push(extraTopRightElement);
       } // freeze column (bottom-left pane)
 
 
@@ -530,6 +535,8 @@ function createGridComponent(_ref2) {
             }));
           }
         }
+
+        if (extraBottomLeftElement) freezeBottomLeftItems.push(extraBottomLeftElement);
       } // freeze top-left pane
 
 
@@ -550,6 +557,8 @@ function createGridComponent(_ref2) {
             }));
           }
         }
+
+        if (extraTopLeftElement) freezeTopLeftItems.push(extraTopLeftElement);
       } // Read this value AFTER items have been created,
       // So their actual sizes (if variable) are taken into consideration.
 
@@ -615,7 +624,7 @@ function createGridComponent(_ref2) {
           pointerEvents: isScrolling ? 'none' : undefined,
           width: estimatedTotalWidth
         }
-      }), extraScrollableElement);
+      }), extraBottomRightElement);
 
       if (freezeTopLeftItems.length) {
         var _topLeftStyle3 = this._getItemStyle(freezeRowCount, freezeColumnCount);
