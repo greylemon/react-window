@@ -642,7 +642,7 @@ function createGridComponent(_ref2) {
             height: _topLeftStyle3.top,
             width: _topLeftStyle3.left,
             position: 'absolute',
-            zIndex: 100001,
+            zIndex: 100,
             background: 'rgb(255, 255, 255)'
           }
         }), outerElement];

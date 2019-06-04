@@ -620,7 +620,7 @@ export default function createGridComponent({
               height: topLeftStyle.top,
               width: topLeftStyle.left,
               position: 'absolute',
-              zIndex: 100001,
+              zIndex: 100,
               background: 'rgb(255, 255, 255)',
             },
           }),
