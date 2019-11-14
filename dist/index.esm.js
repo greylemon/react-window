@@ -476,9 +476,10 @@ function createGridComponent(_ref2) {
           style = _this$props4.style,
           useIsScrolling = _this$props4.useIsScrolling,
           width = _this$props4.width,
-          extraElement = _this$props4.extraElement;
-      var freezeRowCount = this.props.freezeRowCount || 0;
-      var freezeColumnCount = this.props.freezeColumnCount || 0;
+          extraBottomRightElement = _this$props4.extraBottomRightElement,
+          extraBottomLeftElement = _this$props4.extraBottomLeftElement,
+          extraTopLeftElement = _this$props4.extraTopLeftElement,
+          extraTopRightElement = _this$props4.extraTopRightElement;
       var isScrolling = this.state.isScrolling;
 
       var _this$_getHorizontalR = this._getHorizontalRangeToRender(),
@@ -490,13 +491,10 @@ function createGridComponent(_ref2) {
           rowStopIndex = _this$_getVerticalRan[1];
 
       var items = [];
-      var freezeTopLeftItems = [];
-      var freezeTopRightItems = [];
-      var freezeBottomLeftItems = [];
 
       if (columnCount > 0 && rowCount) {
-        for (var _rowIndex = Math.max(freezeRowCount, rowStartIndex); _rowIndex <= rowStopIndex; _rowIndex++) {
-          for (var _columnIndex = Math.max(freezeColumnCount, columnStartIndex); _columnIndex <= columnStopIndex; _columnIndex++) {
+        for (var _rowIndex = rowStartIndex; _rowIndex <= rowStopIndex; _rowIndex++) {
+          for (var _columnIndex = columnStartIndex; _columnIndex <= columnStopIndex; _columnIndex++) {
             items.push(createElement(children, {
               columnIndex: _columnIndex,
               data: itemData,
@@ -531,6 +529,8 @@ function createGridComponent(_ref2) {
             }));
           }
         }
+
+        if (extraTopRightElement) freezeTopRightItems.push(extraTopRightElement);
       } // freeze column (bottom-left pane)
 
 
@@ -556,6 +556,8 @@ function createGridComponent(_ref2) {
             }));
           }
         }
+
+        if (extraBottomLeftElement) freezeBottomLeftItems.push(extraBottomLeftElement);
       } // freeze top-left pane
 
 
@@ -576,54 +578,18 @@ function createGridComponent(_ref2) {
             }));
           }
         }
+
+        if (extraTopLeftElement) freezeTopLeftItems.push(extraTopLeftElement);
       } // Read this value AFTER items have been created,
       // So their actual sizes (if variable) are taken into consideration.
 
 
       var estimatedTotalHeight = getEstimatedTotalHeight(this.props, this._instanceProps);
       var estimatedTotalWidth = getEstimatedTotalWidth(this.props, this._instanceProps);
-
-      if (freezeBottomLeftItems.length) {
-        var _topLeftStyle = this._getItemStyle(freezeRowCount, freezeColumnCount);
-
-        items.unshift(createElement('div', {
-          children: freezeBottomLeftItems,
-          key: 'bottom-left-pane',
-          style: {
-            height: estimatedTotalHeight,
-            width: _topLeftStyle.left,
-            position: 'sticky',
-            left: 0,
-            zIndex: 100000,
-            // transform: `translateY(-${topLeftStyle.top}px)`,
-            background: 'rgb(255, 255, 255)'
-          }
-        }));
-      }
-
-      if (freezeTopRightItems.length) {
-        // top-left cell in the bottom-right pane
-        var _topLeftStyle2 = this._getItemStyle(freezeRowCount, freezeColumnCount);
-
-        items.unshift(createElement('div', {
-          children: freezeTopRightItems,
-          key: 'top-right-pane',
-          style: {
-            height: _topLeftStyle2.top,
-            width: estimatedTotalWidth,
-            position: 'sticky',
-            top: 0,
-            zIndex: 100000,
-            background: 'rgb(255, 255, 255)'
-          }
-        }));
-      }
-
-      var outerElement = createElement(outerElementType || outerTagName || 'div', {
+      return createElement(outerElementType || outerTagName || 'div', {
         className: className,
         onScroll: this._onScroll,
         ref: this._outerRefSetter,
-        key: 'outer-element',
         style: _extends({
           position: 'relative',
           height: height,
@@ -641,25 +607,7 @@ function createGridComponent(_ref2) {
           pointerEvents: isScrolling ? 'none' : undefined,
           width: estimatedTotalWidth
         }
-      }), extraElement);
-
-      if (freezeTopLeftItems.length) {
-        var _topLeftStyle3 = this._getItemStyle(freezeRowCount, freezeColumnCount);
-
-        return [createElement('div', {
-          children: freezeTopLeftItems,
-          key: 'top-left-pane',
-          style: {
-            height: _topLeftStyle3.top,
-            width: _topLeftStyle3.left,
-            position: 'absolute',
-            zIndex: 100,
-            background: 'rgb(255, 255, 255)'
-          }
-        }), outerElement];
-      }
-
-      return outerElement;
+      }), extraBottomRightElement);
     };
 
     _proto._callPropsCallbacks = function _callPropsCallbacks() {
