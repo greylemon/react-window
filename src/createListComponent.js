@@ -3,7 +3,7 @@
 import memoizeOne from 'memoize-one';
 import { createElement, PureComponent } from 'react';
 import { cancelTimeout, requestTimeout } from './timer';
-import { getRTLOffsetType } from './domHelpers';
+import { isRTLOffsetNegative } from './domHelpers';
 
 import type { TimeoutID } from './timer';
 
@@ -39,22 +39,6 @@ type onScrollCallback = ({
 type ScrollEvent = SyntheticEvent<HTMLDivElement>;
 type ItemStyleCache = { [index: number]: Object };
 
-type OuterProps = {|
-  children: React$Node,
-  className: string | void,
-  onScroll: ScrollEvent => void,
-  style: {
-    [string]: mixed,
-  },
-|};
-
-type InnerProps = {|
-  children: React$Node,
-  style: {
-    [string]: mixed,
-  },
-|};
-
 export type Props<T> = {|
   children: RenderComponent<T>,
   className?: string,
@@ -62,7 +46,7 @@ export type Props<T> = {|
   height: number | string,
   initialScrollOffset?: number,
   innerRef?: any,
-  innerElementType?: string | React$AbstractComponent<InnerProps, any>,
+  innerElementType?: React$ElementType,
   innerTagName?: string, // deprecated
   itemCount: number,
   itemData: T,
@@ -72,7 +56,7 @@ export type Props<T> = {|
   onItemsRendered?: onItemsRenderedCallback,
   onScroll?: onScrollCallback,
   outerRef?: any,
-  outerElementType?: string | React$AbstractComponent<OuterProps, any>,
+  outerElementType?: React$ElementType,
   outerTagName?: string, // deprecated
   overscanCount: number,
   style?: Object,
@@ -251,24 +235,18 @@ export default function createListComponent({
 
       if (scrollUpdateWasRequested && this._outerRef != null) {
         const outerRef = ((this._outerRef: any): HTMLElement);
-
         // TODO Deprecate direction "horizontal"
         if (direction === 'horizontal' || layout === 'horizontal') {
           if (direction === 'rtl') {
             // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
             // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
             // So we need to determine which browser behavior we're dealing with, and mimic it.
-            switch (getRTLOffsetType()) {
-              case 'negative':
-                outerRef.scrollLeft = -scrollOffset;
-                break;
-              case 'positive-ascending':
-                outerRef.scrollLeft = scrollOffset;
-                break;
-              default:
-                const { clientWidth, scrollWidth } = outerRef;
-                outerRef.scrollLeft = scrollWidth - clientWidth - scrollOffset;
-                break;
+            const isNegative = isRTLOffsetNegative();
+            if (isNegative) {
+              outerRef.scrollLeft = -scrollOffset;
+            } else {
+              const { clientWidth, scrollWidth } = outerRef;
+              outerRef.scrollLeft = scrollWidth - clientWidth - scrollOffset;
             }
           } else {
             outerRef.scrollLeft = scrollOffset;
@@ -466,12 +444,9 @@ export default function createListComponent({
         const isHorizontal =
           direction === 'horizontal' || layout === 'horizontal';
 
-        const isRtl = direction === 'rtl';
-        const offsetHorizontal = isHorizontal ? offset : 0;
         itemStyleCache[index] = style = {
           position: 'absolute',
-          left: isRtl ? undefined : offsetHorizontal,
-          right: isRtl ? offsetHorizontal : undefined,
+          [direction === 'rtl' ? 'right' : 'left']: isHorizontal ? offset : 0,
           top: !isHorizontal ? offset : 0,
           height: !isHorizontal ? size : '100%',
           width: isHorizontal ? size : '100%',
@@ -537,17 +512,16 @@ export default function createListComponent({
 
         let scrollOffset = scrollLeft;
         if (direction === 'rtl') {
+          const isNegative = isRTLOffsetNegative();
+
           // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
           // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
           // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
           // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
-          switch (getRTLOffsetType()) {
-            case 'negative':
-              scrollOffset = -scrollLeft;
-              break;
-            case 'positive-descending':
-              scrollOffset = scrollWidth - clientWidth - scrollLeft;
-              break;
+          if (isNegative) {
+            scrollOffset = -scrollLeft;
+          } else {
+            scrollOffset = scrollWidth - clientWidth - scrollLeft;
           }
         }
 

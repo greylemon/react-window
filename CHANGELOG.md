@@ -1,19 +1,6 @@
 Changelog
 ------------
 
-### 1.8.5
-* ✨ Added UMD (dev and prod) build - ([emmanueltouzery](https://github.com/emmanueltouzery) - [#281](https://github.com/bvaughn/react-window/pull/281))
-
-### 1.8.4
-* 🐛 Fixed size list and grid components now accurately report `visibleStopIndex` in `onItemsRendered`. (Previously this value was incorrectly reported as one index higher.) - ([justingrant](https://github.com/justingrant) - [#274](https://github.com/bvaughn/react-window/pull/274))
-* 🐛 Fixed size list and grid components `scrollToItem` "center" mode when the item being scrolled to is near the viewport edge. - ([justingrant](https://github.com/justingrant) - [#274](https://github.com/bvaughn/react-window/pull/274))
-
-### 1.8.3
-* 🐛 Edge case bug-fix for `scrollToItem` when scrollbars are present ([MarkFalconbridge](https://github.com/MarkFalconbridge) - [#267](https://github.com/bvaughn/react-window/pull/267))
-* 🐛 Fixed RTL scroll offsets for non-Chromium Edge ([MarkFalconbridge](https://github.com/MarkFalconbridge) - [#268](https://github.com/bvaughn/react-window/pull/268))
-* 🐛 Flow types improved ([TrySound](https://github.com/TrySound) - [#260](https://github.com/bvaughn/react-window/pull/260))
-
-
 ### 1.8.2
 * ✨ Deprecated grid props `overscanColumnsCount` and `overscanRowsCount` props in favor of more consistently named `overscanColumnCount` and `overscanRowCount`. ([nihgwu](https://github.com/nihgwu) - [#229](https://github.com/bvaughn/react-window/pull/229))
 * 🐛 Fixed shaky elastic scroll problems present in iOS Safari. [#244](https://github.com/bvaughn/react-window/issues/244)

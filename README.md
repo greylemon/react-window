@@ -22,7 +22,6 @@ Learn more at [react-window.now.sh](https://react-window.now.sh/):
 
 * [`react-virtualized-auto-sizer`](https://npmjs.com/package/react-virtualized-auto-sizer): HOC that grows to fit all of the available space and passes the width and height values to its child.
 * [`react-window-infinite-loader`](https://npmjs.com/package/react-window-infinite-loader): Helps break large data sets down into chunks that can be just-in-time loaded as they are scrolled into view. It can also be used to create infinite loading lists (e.g. Facebook or Twitter).
-* [`react-vtree`](https://www.npmjs.com/package/react-vtree): Lightweight and flexible solution to render large tree structures (e.g., file system).
 
 ## Frequently asked questions
 
@@ -71,14 +70,6 @@ Yes, using the `outerElementType` prop.
 <img width="412" alt="Screen Shot 2019-03-12 at 8 58 09 AM" src="https://user-images.githubusercontent.com/29597/54215333-f9ee9a80-44a4-11e9-9142-34c67026d950.png">
 
 Here's a [Code Sandbox demo](https://codesandbox.io/s/4zqx79nww0).
-
-### Can I add padding to the top and bottom of a list?
-
-Yes, although it requires a bit of inline styling.
-
-<img width="418" alt="Screen Shot 2019-06-02 at 8 38 18 PM" src="https://user-images.githubusercontent.com/29597/58774454-65ad4480-8576-11e9-8889-07044fd41393.png">
-
-Here's a [Code Sandbox demo](https://codesandbox.io/s/react-window-list-padding-dg0pq).
 
 ### Can I add gutter or padding between items?
 

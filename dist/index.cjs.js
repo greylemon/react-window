@@ -5,8 +5,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var _extends = _interopDefault(require('@babel/runtime/helpers/extends'));
-var _inheritsLoose = _interopDefault(require('@babel/runtime/helpers/inheritsLoose'));
 var _assertThisInitialized = _interopDefault(require('@babel/runtime/helpers/assertThisInitialized'));
+var _inheritsLoose = _interopDefault(require('@babel/runtime/helpers/inheritsLoose'));
 var memoizeOne = _interopDefault(require('memoize-one'));
 var react = require('react');
 var _objectWithoutPropertiesLoose = _interopDefault(require('@babel/runtime/helpers/objectWithoutPropertiesLoose'));
@@ -66,7 +66,7 @@ var cachedRTLResult = null; // TRICKY According to the spec, scrollLeft should b
 // and then verify that the subsequent "scroll" event matches the negative offset.
 // If it does not match, then we can assume a non-standard RTL scroll implementation.
 
-function getRTLOffsetType(recalculate) {
+function isRTLOffsetNegative(recalculate) {
   if (recalculate === void 0) {
     recalculate = false;
   }
@@ -84,19 +84,8 @@ function getRTLOffsetType(recalculate) {
     innerStyle.height = '100px';
     outerDiv.appendChild(innerDiv);
     document.body.appendChild(outerDiv);
-
-    if (outerDiv.scrollLeft > 0) {
-      cachedRTLResult = 'positive-descending';
-    } else {
-      outerDiv.scrollLeft = 1;
-
-      if (outerDiv.scrollLeft === 0) {
-        cachedRTLResult = 'negative';
-      } else {
-        cachedRTLResult = 'positive-ascending';
-      }
-    }
-
+    outerDiv.scrollLeft = -10;
+    cachedRTLResult = outerDiv.scrollLeft === -10;
     document.body.removeChild(outerDiv);
     return cachedRTLResult;
   }
@@ -163,11 +152,11 @@ function createGridComponent(_ref2) {
       var _this;
 
       _this = _PureComponent.call(this, props) || this;
-      _this._instanceProps = initInstanceProps(_this.props, _assertThisInitialized(_assertThisInitialized(_this)));
+      _this._instanceProps = initInstanceProps(_this.props, _assertThisInitialized(_this));
       _this._resetIsScrollingTimeoutId = null;
       _this._outerRef = void 0;
       _this.state = {
-        instance: _assertThisInitialized(_assertThisInitialized(_this)),
+        instance: _assertThisInitialized(_this),
         isScrolling: false,
         horizontalScrollDirection: 'forward',
         scrollLeft: typeof _this.props.initialScrollLeft === 'number' ? _this.props.initialScrollLeft : 0,
@@ -214,17 +203,11 @@ function createGridComponent(_ref2) {
         if (itemStyleCache.hasOwnProperty(key)) {
           style = itemStyleCache[key];
         } else {
-          var _offset = getColumnOffset(_this.props, columnIndex, _this._instanceProps);
+          var _style;
 
-          var isRtl = direction === 'rtl';
-          itemStyleCache[key] = style = {
-            position: 'absolute',
-            left: isRtl ? undefined : _offset,
-            right: isRtl ? _offset : undefined,
-            top: getRowOffset(_this.props, rowIndex, _this._instanceProps),
-            height: getRowHeight(_this.props, rowIndex, _this._instanceProps),
-            width: getColumnWidth(_this.props, columnIndex, _this._instanceProps)
-          };
+          itemStyleCache[key] = style = (_style = {
+            position: 'absolute'
+          }, _style[direction === 'rtl' ? 'right' : 'left'] = getColumnOffset(_this.props, columnIndex, _this._instanceProps), _style.top = getRowOffset(_this.props, rowIndex, _this._instanceProps), _style.height = getRowHeight(_this.props, rowIndex, _this._instanceProps), _style.width = getColumnWidth(_this.props, columnIndex, _this._instanceProps), _style);
         }
 
         return style;
@@ -252,22 +235,19 @@ function createGridComponent(_ref2) {
             return null;
           }
 
-          var direction = _this.props.direction; // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
-          // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
-          // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
-          // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
-
+          var direction = _this.props.direction;
           var calculatedScrollLeft = scrollLeft;
 
           if (direction === 'rtl') {
-            switch (getRTLOffsetType()) {
-              case 'negative':
-                calculatedScrollLeft = -scrollLeft;
-                break;
+            var isNegative = isRTLOffsetNegative(); // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
+            // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
+            // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
+            // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
 
-              case 'positive-descending':
-                calculatedScrollLeft = scrollWidth - clientWidth - scrollLeft;
-                break;
+            if (isNegative) {
+              calculatedScrollLeft = -scrollLeft;
+            } else {
+              calculatedScrollLeft = scrollWidth - clientWidth - scrollLeft;
             }
           } // Prevent Safari's elastic scrolling from causing visual shaking when scrolling past bounds.
 
@@ -432,20 +412,14 @@ function createGridComponent(_ref2) {
         var outerRef = this._outerRef;
 
         if (direction === 'rtl') {
-          switch (getRTLOffsetType()) {
-            case 'negative':
-              outerRef.scrollLeft = -scrollLeft;
-              break;
+          var isNegative = isRTLOffsetNegative();
 
-            case 'positive-ascending':
-              outerRef.scrollLeft = scrollLeft;
-              break;
-
-            default:
-              var clientWidth = outerRef.clientWidth,
-                  scrollWidth = outerRef.scrollWidth;
-              outerRef.scrollLeft = scrollWidth - clientWidth - scrollLeft;
-              break;
+          if (isNegative) {
+            outerRef.scrollLeft = -scrollLeft;
+          } else {
+            var clientWidth = outerRef.clientWidth,
+                scrollWidth = outerRef.scrollWidth;
+            outerRef.scrollLeft = scrollWidth - clientWidth - scrollLeft;
           }
         } else {
           outerRef.scrollLeft = Math.max(0, scrollLeft);
@@ -486,6 +460,8 @@ function createGridComponent(_ref2) {
           extraBottomLeftElement = _this$props4.extraBottomLeftElement,
           extraTopLeftElement = _this$props4.extraTopLeftElement,
           extraTopRightElement = _this$props4.extraTopRightElement;
+      var freezeRowCount = this.props.freezeRowCount || 0;
+      var freezeColumnCount = this.props.freezeColumnCount || 0;
       var isScrolling = this.state.isScrolling;
 
       var _this$_getHorizontalR = this._getHorizontalRangeToRender(),
@@ -497,10 +473,13 @@ function createGridComponent(_ref2) {
           rowStopIndex = _this$_getVerticalRan[1];
 
       var items = [];
+      var freezeTopLeftItems = [];
+      var freezeTopRightItems = [];
+      var freezeBottomLeftItems = [];
 
       if (columnCount > 0 && rowCount) {
-        for (var _rowIndex = rowStartIndex; _rowIndex <= rowStopIndex; _rowIndex++) {
-          for (var _columnIndex = columnStartIndex; _columnIndex <= columnStopIndex; _columnIndex++) {
+        for (var _rowIndex = Math.max(freezeRowCount, rowStartIndex); _rowIndex <= rowStopIndex; _rowIndex++) {
+          for (var _columnIndex = Math.max(freezeColumnCount, columnStartIndex); _columnIndex <= columnStopIndex; _columnIndex++) {
             items.push(react.createElement(children, {
               columnIndex: _columnIndex,
               data: itemData,
@@ -545,9 +524,9 @@ function createGridComponent(_ref2) {
 
         for (var _rowIndex3 = Math.max(freezeRowCount, rowStartIndex); _rowIndex3 <= rowStopIndex; _rowIndex3++) {
           for (var _columnIndex3 = 0; _columnIndex3 < freezeColumnCount; _columnIndex3++) {
-            var _style = Object.assign({}, this._getItemStyle(_rowIndex3, _columnIndex3));
+            var _style2 = Object.assign({}, this._getItemStyle(_rowIndex3, _columnIndex3));
 
-            _style.top -= topLeftStyle.top;
+            _style2.top -= topLeftStyle.top;
             freezeBottomLeftItems.push(react.createElement(children, {
               columnIndex: _columnIndex3,
               data: itemData,
@@ -558,7 +537,7 @@ function createGridComponent(_ref2) {
                 rowIndex: _rowIndex3
               }),
               rowIndex: _rowIndex3,
-              style: _style
+              style: _style2
             }));
           }
         }
@@ -592,10 +571,48 @@ function createGridComponent(_ref2) {
 
       var estimatedTotalHeight = getEstimatedTotalHeight(this.props, this._instanceProps);
       var estimatedTotalWidth = getEstimatedTotalWidth(this.props, this._instanceProps);
-      return react.createElement(outerElementType || outerTagName || 'div', {
+
+      if (freezeBottomLeftItems.length) {
+        var _topLeftStyle = this._getItemStyle(freezeRowCount, freezeColumnCount);
+
+        items.unshift(react.createElement('div', {
+          children: freezeBottomLeftItems,
+          key: 'bottom-left-pane',
+          style: {
+            height: estimatedTotalHeight,
+            width: _topLeftStyle.left,
+            position: 'sticky',
+            left: 0,
+            zIndex: 100000,
+            // transform: `translateY(-${topLeftStyle.top}px)`,
+            background: 'rgb(255, 255, 255)'
+          }
+        }));
+      }
+
+      if (freezeTopRightItems.length) {
+        // top-left cell in the bottom-right pane
+        var _topLeftStyle2 = this._getItemStyle(freezeRowCount, freezeColumnCount);
+
+        items.unshift(react.createElement('div', {
+          children: freezeTopRightItems,
+          key: 'top-right-pane',
+          style: {
+            height: _topLeftStyle2.top,
+            width: estimatedTotalWidth,
+            position: 'sticky',
+            top: 0,
+            zIndex: 100000,
+            background: 'rgb(255, 255, 255)'
+          }
+        }));
+      }
+
+      var outerElement = react.createElement(outerElementType || outerTagName || 'div', {
         className: className,
         onScroll: this._onScroll,
         ref: this._outerRefSetter,
+        key: 'outer-element',
         style: _extends({
           position: 'relative',
           height: height,
@@ -614,6 +631,24 @@ function createGridComponent(_ref2) {
           width: estimatedTotalWidth
         }
       }), extraBottomRightElement);
+
+      if (freezeTopLeftItems.length) {
+        var _topLeftStyle3 = this._getItemStyle(freezeRowCount, freezeColumnCount);
+
+        return [react.createElement('div', {
+          children: freezeTopLeftItems,
+          key: 'top-left-pane',
+          style: {
+            height: _topLeftStyle3.top,
+            width: _topLeftStyle3.left,
+            position: 'absolute',
+            zIndex: 100,
+            background: 'rgb(255, 255, 255)'
+          }
+        }), outerElement];
+      }
+
+      return outerElement;
     };
 
     _proto._callPropsCallbacks = function _callPropsCallbacks() {
@@ -651,11 +686,11 @@ function createGridComponent(_ref2) {
 
         this._callOnScroll(_scrollLeft, _scrollTop, _horizontalScrollDirection, _verticalScrollDirection, _scrollUpdateWasRequested);
       }
-    }; // Lazily create and cache item styles while scrolling,
+    } // Lazily create and cache item styles while scrolling,
     // So that pure component sCU will prevent re-renders.
     // We maintain this cache, and pass a style prop rather than index,
     // So that List can clear cached styles and force item re-render if necessary.
-
+    ;
 
     _proto._getHorizontalRangeToRender = function _getHorizontalRangeToRender() {
       var _this$props6 = this.props,
@@ -949,11 +984,7 @@ var getOffsetForIndexAndAlignment = function getOffsetForIndexAndAlignment(itemT
     default:
       if (scrollOffset >= minOffset && scrollOffset <= maxOffset) {
         return scrollOffset;
-      } else if (minOffset > maxOffset) {
-        // Because we only take into account the scrollbar size when calculating minOffset
-        // this value can be larger than maxOffset when at the end of the list
-        return minOffset;
-      } else if (scrollOffset < minOffset) {
+      } else if (scrollOffset - minOffset < maxOffset - scrollOffset) {
         return minOffset;
       } else {
         return maxOffset;
@@ -1144,11 +1175,11 @@ function createListComponent(_ref) {
       var _this;
 
       _this = _PureComponent.call(this, props) || this;
-      _this._instanceProps = initInstanceProps(_this.props, _assertThisInitialized(_assertThisInitialized(_this)));
+      _this._instanceProps = initInstanceProps(_this.props, _assertThisInitialized(_this));
       _this._outerRef = void 0;
       _this._resetIsScrollingTimeoutId = null;
       _this.state = {
-        instance: _assertThisInitialized(_assertThisInitialized(_this)),
+        instance: _assertThisInitialized(_this),
         isScrolling: false,
         scrollDirection: 'forward',
         scrollOffset: typeof _this.props.initialScrollOffset === 'number' ? _this.props.initialScrollOffset : 0,
@@ -1186,21 +1217,16 @@ function createListComponent(_ref) {
         if (itemStyleCache.hasOwnProperty(index)) {
           style = itemStyleCache[index];
         } else {
+          var _style;
+
           var _offset = getItemOffset(_this.props, index, _this._instanceProps);
 
           var size = getItemSize(_this.props, index, _this._instanceProps); // TODO Deprecate direction "horizontal"
 
           var isHorizontal = direction === 'horizontal' || layout === 'horizontal';
-          var isRtl = direction === 'rtl';
-          var offsetHorizontal = isHorizontal ? _offset : 0;
-          itemStyleCache[index] = style = {
-            position: 'absolute',
-            left: isRtl ? undefined : offsetHorizontal,
-            right: isRtl ? offsetHorizontal : undefined,
-            top: !isHorizontal ? _offset : 0,
-            height: !isHorizontal ? size : '100%',
-            width: isHorizontal ? size : '100%'
-          };
+          itemStyleCache[index] = style = (_style = {
+            position: 'absolute'
+          }, _style[direction === 'rtl' ? 'right' : 'left'] = isHorizontal ? _offset : 0, _style.top = !isHorizontal ? _offset : 0, _style.height = !isHorizontal ? size : '100%', _style.width = isHorizontal ? size : '100%', _style);
         }
 
         return style;
@@ -1229,18 +1255,15 @@ function createListComponent(_ref) {
           var scrollOffset = scrollLeft;
 
           if (direction === 'rtl') {
-            // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
+            var isNegative = isRTLOffsetNegative(); // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
             // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
             // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
             // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
-            switch (getRTLOffsetType()) {
-              case 'negative':
-                scrollOffset = -scrollLeft;
-                break;
 
-              case 'positive-descending':
-                scrollOffset = scrollWidth - clientWidth - scrollLeft;
-                break;
+            if (isNegative) {
+              scrollOffset = -scrollLeft;
+            } else {
+              scrollOffset = scrollWidth - clientWidth - scrollLeft;
             }
           } // Prevent Safari's elastic scrolling from causing visual shaking when scrolling past bounds.
 
@@ -1383,20 +1406,14 @@ function createListComponent(_ref) {
             // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
             // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
             // So we need to determine which browser behavior we're dealing with, and mimic it.
-            switch (getRTLOffsetType()) {
-              case 'negative':
-                outerRef.scrollLeft = -scrollOffset;
-                break;
+            var isNegative = isRTLOffsetNegative();
 
-              case 'positive-ascending':
-                outerRef.scrollLeft = scrollOffset;
-                break;
-
-              default:
-                var clientWidth = outerRef.clientWidth,
-                    scrollWidth = outerRef.scrollWidth;
-                outerRef.scrollLeft = scrollWidth - clientWidth - scrollOffset;
-                break;
+            if (isNegative) {
+              outerRef.scrollLeft = -scrollOffset;
+            } else {
+              var clientWidth = outerRef.clientWidth,
+                  scrollWidth = outerRef.scrollWidth;
+              outerRef.scrollLeft = scrollWidth - clientWidth - scrollOffset;
             }
           } else {
             outerRef.scrollLeft = scrollOffset;
@@ -1507,11 +1524,11 @@ function createListComponent(_ref) {
 
         this._callOnScroll(_scrollDirection, _scrollOffset, _scrollUpdateWasRequested);
       }
-    }; // Lazily create and cache item styles while scrolling,
+    } // Lazily create and cache item styles while scrolling,
     // So that pure component sCU will prevent re-renders.
     // We maintain this cache, and pass a style prop rather than index,
     // So that List can clear cached styles and force item re-render if necessary.
-
+    ;
 
     _proto._getRangeToRender = function _getRangeToRender() {
       var _this$props5 = this.props,
@@ -1760,7 +1777,7 @@ createListComponent({
       default:
         if (scrollOffset >= minOffset && scrollOffset <= maxOffset) {
           return scrollOffset;
-        } else if (scrollOffset < minOffset) {
+        } else if (scrollOffset - minOffset < maxOffset - scrollOffset) {
           return minOffset;
         } else {
           return maxOffset;
@@ -1865,8 +1882,7 @@ createGridComponent({
     var columnCount = _ref7.columnCount,
         columnWidth = _ref7.columnWidth,
         width = _ref7.width;
-    var lastColumnOffset = Math.max(0, columnCount * columnWidth - width);
-    var maxOffset = Math.min(lastColumnOffset, columnIndex * columnWidth);
+    var maxOffset = Math.max(0, Math.min(columnCount * columnWidth - width, columnIndex * columnWidth));
     var minOffset = Math.max(0, columnIndex * columnWidth - width + scrollbarSize + columnWidth);
 
     if (align === 'smart') {
@@ -1885,27 +1901,13 @@ createGridComponent({
         return minOffset;
 
       case 'center':
-        // "Centered" offset is usually the average of the min and max.
-        // But near the edges of the list, this doesn't hold true.
-        var middleOffset = Math.round(minOffset + (maxOffset - minOffset) / 2);
-
-        if (middleOffset < Math.ceil(width / 2)) {
-          return 0; // near the beginning
-        } else if (middleOffset > lastColumnOffset + Math.floor(width / 2)) {
-          return lastColumnOffset; // near the end
-        } else {
-          return middleOffset;
-        }
+        return Math.round(minOffset + (maxOffset - minOffset) / 2);
 
       case 'auto':
       default:
         if (scrollLeft >= minOffset && scrollLeft <= maxOffset) {
           return scrollLeft;
-        } else if (minOffset > maxOffset) {
-          // Because we only take into account the scrollbar size when calculating minOffset
-          // this value can be larger than maxOffset when at the end of the list
-          return minOffset;
-        } else if (scrollLeft < minOffset) {
+        } else if (scrollLeft - minOffset < maxOffset - scrollLeft) {
           return minOffset;
         } else {
           return maxOffset;
@@ -1917,8 +1919,7 @@ createGridComponent({
     var rowHeight = _ref8.rowHeight,
         height = _ref8.height,
         rowCount = _ref8.rowCount;
-    var lastRowOffset = Math.max(0, rowCount * rowHeight - height);
-    var maxOffset = Math.min(lastRowOffset, rowIndex * rowHeight);
+    var maxOffset = Math.max(0, Math.min(rowCount * rowHeight - height, rowIndex * rowHeight));
     var minOffset = Math.max(0, rowIndex * rowHeight - height + scrollbarSize + rowHeight);
 
     if (align === 'smart') {
@@ -1937,27 +1938,13 @@ createGridComponent({
         return minOffset;
 
       case 'center':
-        // "Centered" offset is usually the average of the min and max.
-        // But near the edges of the list, this doesn't hold true.
-        var middleOffset = Math.round(minOffset + (maxOffset - minOffset) / 2);
-
-        if (middleOffset < Math.ceil(height / 2)) {
-          return 0; // near the beginning
-        } else if (middleOffset > lastRowOffset + Math.floor(height / 2)) {
-          return lastRowOffset; // near the end
-        } else {
-          return middleOffset;
-        }
+        return Math.round(minOffset + (maxOffset - minOffset) / 2);
 
       case 'auto':
       default:
         if (scrollTop >= minOffset && scrollTop <= maxOffset) {
           return scrollTop;
-        } else if (minOffset > maxOffset) {
-          // Because we only take into account the scrollbar size when calculating minOffset
-          // this value can be larger than maxOffset when at the end of the list
-          return minOffset;
-        } else if (scrollTop < minOffset) {
+        } else if (scrollTop - minOffset < maxOffset - scrollTop) {
           return minOffset;
         } else {
           return maxOffset;
@@ -1975,9 +1962,7 @@ createGridComponent({
         columnCount = _ref10.columnCount,
         width = _ref10.width;
     var left = startIndex * columnWidth;
-    var numVisibleColumns = Math.ceil((width + scrollLeft - left) / columnWidth);
-    return Math.max(0, Math.min(columnCount - 1, startIndex + numVisibleColumns - 1 // -1 is because stop index is inclusive
-    ));
+    return Math.max(0, Math.min(columnCount - 1, startIndex + Math.floor((width + (scrollLeft - left)) / columnWidth)));
   },
   getRowStartIndexForOffset: function getRowStartIndexForOffset(_ref11, scrollTop) {
     var rowHeight = _ref11.rowHeight,
@@ -1988,10 +1973,8 @@ createGridComponent({
     var rowHeight = _ref12.rowHeight,
         rowCount = _ref12.rowCount,
         height = _ref12.height;
-    var top = startIndex * rowHeight;
-    var numVisibleRows = Math.ceil((height + scrollTop - top) / rowHeight);
-    return Math.max(0, Math.min(rowCount - 1, startIndex + numVisibleRows - 1 // -1 is because stop index is inclusive
-    ));
+    var left = startIndex * rowHeight;
+    return Math.max(0, Math.min(rowCount - 1, startIndex + Math.floor((height + (scrollTop - left)) / rowHeight)));
   },
   initInstanceProps: function initInstanceProps(props) {// Noop
   },
@@ -2016,11 +1999,13 @@ var FixedSizeList =
 /*#__PURE__*/
 createListComponent({
   getItemOffset: function getItemOffset(_ref, index) {
-    var itemSize = _ref.itemSize;
+    var itemSize = _ref.itemSize,
+        size = _ref.size;
     return index * itemSize;
   },
   getItemSize: function getItemSize(_ref2, index) {
-    var itemSize = _ref2.itemSize;
+    var itemSize = _ref2.itemSize,
+        size = _ref2.size;
     return itemSize;
   },
   getEstimatedTotalSize: function getEstimatedTotalSize(_ref3) {
@@ -2038,8 +2023,7 @@ createListComponent({
     // TODO Deprecate direction "horizontal"
     var isHorizontal = direction === 'horizontal' || layout === 'horizontal';
     var size = isHorizontal ? width : height;
-    var lastItemOffset = Math.max(0, itemCount * itemSize - size);
-    var maxOffset = Math.min(lastItemOffset, index * itemSize);
+    var maxOffset = Math.max(0, Math.min(itemCount * itemSize - size, index * itemSize));
     var minOffset = Math.max(0, index * itemSize - size + itemSize);
 
     if (align === 'smart') {
@@ -2058,25 +2042,13 @@ createListComponent({
         return minOffset;
 
       case 'center':
-        {
-          // "Centered" offset is usually the average of the min and max.
-          // But near the edges of the list, this doesn't hold true.
-          var middleOffset = Math.round(minOffset + (maxOffset - minOffset) / 2);
-
-          if (middleOffset < Math.ceil(size / 2)) {
-            return 0; // near the beginning
-          } else if (middleOffset > lastItemOffset + Math.floor(size / 2)) {
-            return lastItemOffset; // near the end
-          } else {
-            return middleOffset;
-          }
-        }
+        return Math.round(minOffset + (maxOffset - minOffset) / 2);
 
       case 'auto':
       default:
         if (scrollOffset >= minOffset && scrollOffset <= maxOffset) {
           return scrollOffset;
-        } else if (scrollOffset < minOffset) {
+        } else if (scrollOffset - minOffset < maxOffset - scrollOffset) {
           return minOffset;
         } else {
           return maxOffset;
@@ -2100,9 +2072,7 @@ createListComponent({
     var isHorizontal = direction === 'horizontal' || layout === 'horizontal';
     var offset = startIndex * itemSize;
     var size = isHorizontal ? width : height;
-    var numVisibleItems = Math.ceil((size + scrollOffset - offset) / itemSize);
-    return Math.max(0, Math.min(itemCount - 1, startIndex + numVisibleItems - 1 // -1 is because stop index is inclusive
-    ));
+    return Math.max(0, Math.min(itemCount - 1, startIndex + Math.floor((size + (scrollOffset - offset)) / itemSize)));
   },
   initInstanceProps: function initInstanceProps(props) {// Noop
   },
@@ -2156,10 +2126,9 @@ function shouldComponentUpdate(nextProps, nextState) {
   return !areEqual(this.props, nextProps) || shallowDiffers(this.state, nextState);
 }
 
-exports.VariableSizeGrid = VariableSizeGrid;
-exports.VariableSizeList = VariableSizeList;
 exports.FixedSizeGrid = FixedSizeGrid;
 exports.FixedSizeList = FixedSizeList;
+exports.VariableSizeGrid = VariableSizeGrid;
+exports.VariableSizeList = VariableSizeList;
 exports.areEqual = areEqual;
 exports.shouldComponentUpdate = shouldComponentUpdate;
-//# sourceMappingURL=index.cjs.js.map

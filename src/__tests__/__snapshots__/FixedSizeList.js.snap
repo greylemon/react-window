@@ -5,27 +5,6 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
-      "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 0,
-      "overscanStopIndex": 3,
-      "visibleStartIndex": 0,
-      "visibleStopIndex": 1,
-    },
-  ],
-]
-`;
-
-exports[`FixedSizeList onScroll scrolling should report partial items correctly in onItemsRendered 1`] = `
-Array [
-  Array [
-    Object {
-      "overscanStartIndex": 0,
       "overscanStopIndex": 6,
       "visibleStartIndex": 0,
       "visibleStopIndex": 4,
@@ -33,50 +12,10 @@ Array [
   ],
   Array [
     Object {
-      "overscanStartIndex": 1,
-      "overscanStopIndex": 8,
-      "visibleStartIndex": 2,
-      "visibleStopIndex": 6,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 2,
-      "overscanStopIndex": 8,
-      "visibleStartIndex": 3,
-      "visibleStopIndex": 6,
-    },
-  ],
-  Array [
-    Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 7,
-      "visibleStartIndex": 2,
-      "visibleStopIndex": 6,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 94,
-      "overscanStopIndex": 99,
-      "visibleStartIndex": 95,
-      "visibleStopIndex": 99,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 95,
-      "overscanStopIndex": 99,
-      "visibleStartIndex": 96,
-      "visibleStopIndex": 99,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 93,
-      "overscanStopIndex": 99,
-      "visibleStartIndex": 95,
-      "visibleStopIndex": 99,
+      "overscanStopIndex": 4,
+      "visibleStartIndex": 0,
+      "visibleStopIndex": 2,
     },
   ],
 ]
@@ -125,9 +64,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 1,
-      "overscanStopIndex": 10,
+      "overscanStopIndex": 11,
       "visibleStartIndex": 4,
-      "visibleStopIndex": 7,
+      "visibleStopIndex": 8,
     },
   ],
 ]
@@ -138,9 +77,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
 ]
@@ -164,9 +103,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 7,
+      "overscanStopIndex": 8,
       "visibleStartIndex": 2,
-      "visibleStopIndex": 5,
+      "visibleStopIndex": 6,
     },
   ],
 ]
@@ -177,25 +116,25 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 7,
+      "overscanStopIndex": 8,
       "visibleStartIndex": 2,
-      "visibleStopIndex": 5,
+      "visibleStopIndex": 6,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 3,
-      "overscanStopIndex": 9,
+      "overscanStopIndex": 10,
       "visibleStartIndex": 4,
-      "visibleStopIndex": 7,
+      "visibleStopIndex": 8,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 6,
+      "overscanStopIndex": 7,
       "visibleStartIndex": 2,
-      "visibleStopIndex": 5,
+      "visibleStopIndex": 6,
     },
   ],
 ]
@@ -206,67 +145,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 1,
-      "overscanStopIndex": 6,
+      "overscanStopIndex": 7,
       "visibleStartIndex": 2,
-      "visibleStopIndex": 5,
-    },
-  ],
-]
-`;
-
-exports[`FixedSizeList scrollToItem method scroll with align = "auto" should work with partially-visible items 1`] = `
-Array [
-  Array [
-    Object {
-      "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
-      "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 5,
-      "overscanStopIndex": 12,
-      "visibleStartIndex": 7,
-      "visibleStopIndex": 10,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 94,
-      "overscanStopIndex": 99,
-      "visibleStartIndex": 96,
-      "visibleStopIndex": 99,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 0,
-      "overscanStopIndex": 6,
-      "visibleStartIndex": 1,
-      "visibleStopIndex": 4,
-    },
-  ],
-  Array [
-    Object {
-      "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
-      "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
-    },
-  ],
-]
-`;
-
-exports[`FixedSizeList scrollToItem method scroll with align = "auto" should work with very small lists and partial items 1`] = `
-Array [
-  Array [
-    Object {
-      "overscanStartIndex": 0,
-      "overscanStopIndex": 1,
-      "visibleStartIndex": 0,
-      "visibleStopIndex": 1,
+      "visibleStopIndex": 6,
     },
   ],
 ]
@@ -290,9 +171,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
 ]
@@ -305,25 +186,25 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 5,
-      "overscanStopIndex": 12,
+      "overscanStopIndex": 13,
       "visibleStartIndex": 7,
-      "visibleStopIndex": 10,
+      "visibleStopIndex": 11,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 7,
+      "overscanStopIndex": 8,
       "visibleStartIndex": 2,
-      "visibleStopIndex": 5,
+      "visibleStopIndex": 6,
     },
   ],
 ]
@@ -334,9 +215,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
   Array [
@@ -358,9 +239,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
   Array [
@@ -379,33 +260,33 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 5,
-      "overscanStopIndex": 12,
+      "overscanStopIndex": 13,
       "visibleStartIndex": 7,
-      "visibleStopIndex": 10,
+      "visibleStopIndex": 11,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 4,
-      "overscanStopIndex": 11,
+      "overscanStopIndex": 12,
       "visibleStartIndex": 6,
-      "visibleStopIndex": 9,
+      "visibleStopIndex": 10,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
 ]
@@ -416,9 +297,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
   Array [
@@ -432,17 +313,17 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 4,
-      "overscanStopIndex": 11,
+      "overscanStopIndex": 12,
       "visibleStartIndex": 6,
-      "visibleStopIndex": 9,
+      "visibleStopIndex": 10,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
   Array [
@@ -458,7 +339,7 @@ Array [
       "overscanStartIndex": 93,
       "overscanStopIndex": 99,
       "visibleStartIndex": 95,
-      "visibleStopIndex": 98,
+      "visibleStopIndex": 99,
     },
   ],
   Array [
@@ -474,7 +355,7 @@ Array [
       "overscanStartIndex": 92,
       "overscanStopIndex": 99,
       "visibleStartIndex": 94,
-      "visibleStopIndex": 97,
+      "visibleStopIndex": 98,
     },
   ],
   Array [
@@ -509,25 +390,25 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 8,
-      "overscanStopIndex": 15,
+      "overscanStopIndex": 16,
       "visibleStartIndex": 10,
-      "visibleStopIndex": 13,
+      "visibleStopIndex": 14,
     },
   ],
   Array [
     Object {
       "overscanStartIndex": 7,
-      "overscanStopIndex": 14,
+      "overscanStopIndex": 15,
       "visibleStartIndex": 9,
-      "visibleStopIndex": 12,
+      "visibleStopIndex": 13,
     },
   ],
   Array [
@@ -546,9 +427,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 3,
+      "overscanStopIndex": 4,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 1,
+      "visibleStopIndex": 2,
     },
   ],
 ]
@@ -559,9 +440,9 @@ Array [
   Array [
     Object {
       "overscanStartIndex": 0,
-      "overscanStopIndex": 5,
+      "overscanStopIndex": 6,
       "visibleStartIndex": 0,
-      "visibleStopIndex": 3,
+      "visibleStopIndex": 4,
     },
   ],
 ]
