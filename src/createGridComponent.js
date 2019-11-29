@@ -577,6 +577,7 @@ export default function createGridComponent({
           children: items,
           ref: innerRef,
           style: {
+            position: 'absolute',
             height: estimatedTotalHeight,
             pointerEvents: isScrolling ? 'none' : undefined,
             width: estimatedTotalWidth,
