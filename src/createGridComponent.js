@@ -449,12 +449,21 @@ export default function createGridComponent({
       }
       // freeze column (bottom-left pane)
       if (freezeColumnCount) {
-        for (let rowIndex = Math.max(freezeColumnCount, columnStartIndex); rowIndex <= rowStopIndex; rowIndex++) {
+        const topLeftStyle = this._getItemStyle(
+          freezeRowCount,
+          freezeColumnCount
+        );
+        for (let rowIndex = Math.max(freezeRowCount, rowStartIndex); rowIndex <= rowStopIndex; rowIndex++) {
           for (
             let columnIndex = 0;
             columnIndex < freezeColumnCount;
             columnIndex++
           ) {
+            let style = Object.assign(
+              {},
+              this._getItemStyle(rowIndex, columnIndex)
+            );
+            style.top -= topLeftStyle.top;
             freezeBottomLeftItems.push(
               createElement(children, {
                 columnIndex,
@@ -462,7 +471,7 @@ export default function createGridComponent({
                 isScrolling: useIsScrolling ? isScrolling : undefined,
                 key: itemKey({ columnIndex, data: itemData, rowIndex }),
                 rowIndex,
-                style: this._getItemStyle(rowIndex, columnIndex),
+                style
               })
             );
           }
@@ -512,7 +521,7 @@ export default function createGridComponent({
             children: freezeBottomLeftItems,
             key: 'bottom-left-pane',
             style: {
-              height: estimatedTotalHeight,
+              height: estimatedTotalHeight - topLeftStyle.top,
               width: topLeftStyle.left,
               position: 'sticky',
               left: 0,
