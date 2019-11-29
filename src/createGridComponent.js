@@ -449,25 +449,12 @@ export default function createGridComponent({
       }
       // freeze column (bottom-left pane)
       if (freezeColumnCount) {
-        // const topLeftStyle = this._getItemStyle(
-        //   freezeRowCount,
-        //   freezeColumnCount
-        // );
-        for (
-          let rowIndex = Math.max(freezeRowCount, rowStartIndex);
-          rowIndex <= rowStopIndex;
-          rowIndex++
-        ) {
+        for (let rowIndex = 0; rowIndex <= rowStopIndex; rowIndex++) {
           for (
             let columnIndex = 0;
             columnIndex < freezeColumnCount;
             columnIndex++
           ) {
-            // let style = Object.assign(
-            //   {},
-            //   this._getItemStyle(rowIndex, columnIndex)
-            // );
-            // // style.top -= topLeftStyle.top;
             freezeBottomLeftItems.push(
               createElement(children, {
                 columnIndex,
