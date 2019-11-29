@@ -424,6 +424,7 @@ export default function createGridComponent({
           }
         }
       }
+
       // freeze row (top-right pane)
       if (freezeRowCount) {
         for (let rowIndex = 0; rowIndex < freezeRowCount; rowIndex++) {
@@ -447,13 +448,18 @@ export default function createGridComponent({
         if (extraTopRightElement)
           freezeTopRightItems.push(extraTopRightElement);
       }
+
       // freeze column (bottom-left pane)
       if (freezeColumnCount) {
         const topLeftStyle = this._getItemStyle(
           freezeRowCount,
           freezeColumnCount
         );
-        for (let rowIndex = Math.max(freezeRowCount, rowStartIndex); rowIndex <= rowStopIndex; rowIndex++) {
+        for (
+          let rowIndex = Math.max(freezeRowCount, rowStartIndex);
+          rowIndex <= rowStopIndex;
+          rowIndex++
+        ) {
           for (
             let columnIndex = 0;
             columnIndex < freezeColumnCount;
@@ -471,7 +477,7 @@ export default function createGridComponent({
                 isScrolling: useIsScrolling ? isScrolling : undefined,
                 key: itemKey({ columnIndex, data: itemData, rowIndex }),
                 rowIndex,
-                style
+                style,
               })
             );
           }
@@ -479,6 +485,7 @@ export default function createGridComponent({
         if (extraBottomLeftElement)
           freezeBottomLeftItems.push(extraBottomLeftElement);
       }
+
       // freeze top-left pane
       if (freezeColumnCount && freezeRowCount) {
         for (let rowIndex = 0; rowIndex < freezeRowCount; rowIndex++) {
@@ -501,6 +508,7 @@ export default function createGridComponent({
         }
         if (extraTopLeftElement) freezeTopLeftItems.push(extraTopLeftElement);
       }
+
       // Read this value AFTER items have been created,
       // So their actual sizes (if variable) are taken into consideration.
       const estimatedTotalHeight = getEstimatedTotalHeight(
@@ -511,6 +519,7 @@ export default function createGridComponent({
         this.props,
         this._instanceProps
       );
+
       if (freezeBottomLeftItems.length) {
         const topLeftStyle = this._getItemStyle(
           freezeRowCount,
@@ -526,13 +535,13 @@ export default function createGridComponent({
               position: 'sticky',
               left: 0,
               zIndex: 100000,
-              top: 0,
               // transform: `translateY(-${topLeftStyle.top}px)`,
               background: 'rgb(255, 255, 255)',
             },
           })
         );
       }
+
       if (freezeTopRightItems.length) {
         // top-left cell in the bottom-right pane
         const topLeftStyle = this._getItemStyle(
@@ -548,13 +557,13 @@ export default function createGridComponent({
               width: estimatedTotalWidth,
               position: 'sticky',
               top: 0,
-              left: 0,
               zIndex: 100000,
               background: 'rgb(255, 255, 255)',
             },
           })
         );
       }
+
       const outerElement = createElement(
         outerElementType || outerTagName || 'div',
         {
@@ -577,7 +586,6 @@ export default function createGridComponent({
           children: items,
           ref: innerRef,
           style: {
-            position: 'absolute',
             height: estimatedTotalHeight,
             pointerEvents: isScrolling ? 'none' : undefined,
             width: estimatedTotalWidth,
@@ -585,6 +593,7 @@ export default function createGridComponent({
         }),
         extraBottomRightElement
       );
+
       if (freezeTopLeftItems.length) {
         const topLeftStyle = this._getItemStyle(
           freezeRowCount,
@@ -599,8 +608,6 @@ export default function createGridComponent({
               width: topLeftStyle.left,
               position: 'absolute',
               zIndex: 100,
-              top: 0,
-              left: 0,
               background: 'rgb(255, 255, 255)',
             },
           }),
