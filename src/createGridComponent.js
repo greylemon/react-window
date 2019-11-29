@@ -449,7 +449,7 @@ export default function createGridComponent({
       }
       // freeze column (bottom-left pane)
       if (freezeColumnCount) {
-        for (let rowIndex = 0; rowIndex <= rowStopIndex; rowIndex++) {
+        for (let rowIndex = Math.max(freezeColumnCount, columnStartIndex); rowIndex <= rowStopIndex; rowIndex++) {
           for (
             let columnIndex = 0;
             columnIndex < freezeColumnCount;
