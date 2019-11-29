@@ -449,10 +449,10 @@ export default function createGridComponent({
       }
       // freeze column (bottom-left pane)
       if (freezeColumnCount) {
-        const topLeftStyle = this._getItemStyle(
-          freezeRowCount,
-          freezeColumnCount
-        );
+        // const topLeftStyle = this._getItemStyle(
+        //   freezeRowCount,
+        //   freezeColumnCount
+        // );
         for (
           let rowIndex = Math.max(freezeRowCount, rowStartIndex);
           rowIndex <= rowStopIndex;
@@ -463,11 +463,11 @@ export default function createGridComponent({
             columnIndex < freezeColumnCount;
             columnIndex++
           ) {
-            let style = Object.assign(
-              {},
-              this._getItemStyle(rowIndex, columnIndex)
-            );
-            style.top -= topLeftStyle.top;
+            // let style = Object.assign(
+            //   {},
+            //   this._getItemStyle(rowIndex, columnIndex)
+            // );
+            // // style.top -= topLeftStyle.top;
             freezeBottomLeftItems.push(
               createElement(children, {
                 columnIndex,
@@ -475,7 +475,7 @@ export default function createGridComponent({
                 isScrolling: useIsScrolling ? isScrolling : undefined,
                 key: itemKey({ columnIndex, data: itemData, rowIndex }),
                 rowIndex,
-                style,
+                style: this._getItemStyle(rowIndex, columnIndex),
               })
             );
           }
