@@ -3,7 +3,7 @@
 import memoizeOne from 'memoize-one';
 import { createElement, PureComponent } from 'react';
 import { cancelTimeout, requestTimeout } from './timer';
-import { getScrollbarSize, isRTLOffsetNegative } from './domHelpers';
+import { getScrollbarSize, getRTLOffsetType } from './domHelpers';
 
 import type { TimeoutID } from './timer';
 
@@ -46,6 +46,22 @@ type OnScrollCallback = ({
 type ScrollEvent = SyntheticEvent<HTMLDivElement>;
 type ItemStyleCache = { [key: string]: Object };
 
+type OuterProps = {|
+  children: React$Node,
+  className: string | void,
+  onScroll: ScrollEvent => void,
+  style: {
+    [string]: mixed,
+  },
+|};
+
+type InnerProps = {|
+  children: React$Node,
+  style: {
+    [string]: mixed,
+  },
+|};
+
 export type Props<T> = {|
   children: RenderComponent<T>,
   className?: string,
@@ -56,7 +72,7 @@ export type Props<T> = {|
   initialScrollLeft?: number,
   initialScrollTop?: number,
   innerRef?: any,
-  innerElementType?: React$ElementType,
+  innerElementType?: string | React$AbstractComponent<InnerProps, any>,
   innerTagName?: string, // deprecated
   itemData: T,
   itemKey?: (params: {|
@@ -67,7 +83,7 @@ export type Props<T> = {|
   onItemsRendered?: OnItemsRenderedCallback,
   onScroll?: OnScrollCallback,
   outerRef?: any,
-  outerElementType?: React$ElementType,
+  outerElementType?: string | React$AbstractComponent<OuterProps, any>,
   outerTagName?: string, // deprecated
   overscanColumnCount?: number,
   overscanColumnsCount?: number, // deprecated
@@ -79,12 +95,6 @@ export type Props<T> = {|
   style?: Object,
   useIsScrolling: boolean,
   width: number,
-  freezeRowCount?: number,
-  freezeColumnCount?: number,
-  extraBottomRightElement?: React$Element<any>,
-  extraBottomLeftElement?: React$Element<any>,
-  extraTopLeftElement?: React$Element<any>,
-  extraTopRightElement?: React$Element<any>,
 |};
 
 type State = {|
@@ -354,12 +364,17 @@ export default function createGridComponent({
         // So we need to determine which browser behavior we're dealing with, and mimic it.
         const outerRef = ((this._outerRef: any): HTMLElement);
         if (direction === 'rtl') {
-          const isNegative = isRTLOffsetNegative();
-          if (isNegative) {
-            outerRef.scrollLeft = -scrollLeft;
-          } else {
-            const { clientWidth, scrollWidth } = outerRef;
-            outerRef.scrollLeft = scrollWidth - clientWidth - scrollLeft;
+          switch (getRTLOffsetType()) {
+            case 'negative':
+              outerRef.scrollLeft = -scrollLeft;
+              break;
+            case 'positive-ascending':
+              outerRef.scrollLeft = scrollLeft;
+              break;
+            default:
+              const { clientWidth, scrollWidth } = outerRef;
+              outerRef.scrollLeft = scrollWidth - clientWidth - scrollLeft;
+              break;
           }
         } else {
           outerRef.scrollLeft = Math.max(0, scrollLeft);
@@ -395,14 +410,9 @@ export default function createGridComponent({
         style,
         useIsScrolling,
         width,
-        extraBottomRightElement,
-        extraBottomLeftElement,
-        extraTopLeftElement,
-        extraTopRightElement,
       } = this.props;
-      const freezeRowCount = this.props.freezeRowCount || 0;
-      const freezeColumnCount = this.props.freezeColumnCount || 0;
       const { isScrolling } = this.state;
+
       const [
         columnStartIndex,
         columnStopIndex,
@@ -410,17 +420,14 @@ export default function createGridComponent({
       const [rowStartIndex, rowStopIndex] = this._getVerticalRangeToRender();
 
       const items = [];
-      const freezeTopLeftItems = [];
-      const freezeTopRightItems = [];
-      const freezeBottomLeftItems = [];
       if (columnCount > 0 && rowCount) {
         for (
-          let rowIndex = Math.max(freezeRowCount, rowStartIndex);
+          let rowIndex = rowStartIndex;
           rowIndex <= rowStopIndex;
           rowIndex++
         ) {
           for (
-            let columnIndex = Math.max(freezeColumnCount, columnStartIndex);
+            let columnIndex = columnStartIndex;
             columnIndex <= columnStopIndex;
             columnIndex++
           ) {
@@ -438,90 +445,6 @@ export default function createGridComponent({
         }
       }
 
-      // freeze row (top-right pane)
-      if (freezeRowCount) {
-        for (let rowIndex = 0; rowIndex < freezeRowCount; rowIndex++) {
-          for (
-            let columnIndex = Math.max(freezeColumnCount, columnStartIndex);
-            columnIndex <= columnStopIndex;
-            columnIndex++
-          ) {
-            freezeTopRightItems.push(
-              createElement(children, {
-                columnIndex,
-                data: itemData,
-                isScrolling: useIsScrolling ? isScrolling : undefined,
-                key: itemKey({ columnIndex, data: itemData, rowIndex }),
-                rowIndex,
-                style: this._getItemStyle(rowIndex, columnIndex),
-              })
-            );
-          }
-        }
-        if (extraTopRightElement)
-          freezeTopRightItems.push(extraTopRightElement);
-      }
-
-      // freeze column (bottom-left pane)
-      if (freezeColumnCount) {
-        const topLeftStyle = this._getItemStyle(
-          freezeRowCount,
-          freezeColumnCount
-        );
-        for (
-          let rowIndex = Math.max(freezeRowCount, rowStartIndex);
-          rowIndex <= rowStopIndex;
-          rowIndex++
-        ) {
-          for (
-            let columnIndex = 0;
-            columnIndex < freezeColumnCount;
-            columnIndex++
-          ) {
-            let style = Object.assign(
-              {},
-              this._getItemStyle(rowIndex, columnIndex)
-            );
-            style.top -= topLeftStyle.top;
-            freezeBottomLeftItems.push(
-              createElement(children, {
-                columnIndex,
-                data: itemData,
-                isScrolling: useIsScrolling ? isScrolling : undefined,
-                key: itemKey({ columnIndex, data: itemData, rowIndex }),
-                rowIndex,
-                style,
-              })
-            );
-          }
-        }
-        if (extraBottomLeftElement)
-          freezeBottomLeftItems.push(extraBottomLeftElement);
-      }
-
-      // freeze top-left pane
-      if (freezeColumnCount && freezeRowCount) {
-        for (let rowIndex = 0; rowIndex < freezeRowCount; rowIndex++) {
-          for (
-            let columnIndex = 0;
-            columnIndex < freezeColumnCount;
-            columnIndex++
-          ) {
-            freezeTopLeftItems.push(
-              createElement(children, {
-                columnIndex,
-                data: itemData,
-                isScrolling: useIsScrolling ? isScrolling : undefined,
-                key: itemKey({ columnIndex, data: itemData, rowIndex }),
-                rowIndex,
-                style: this._getItemStyle(rowIndex, columnIndex),
-              })
-            );
-          }
-        }
-        if (extraTopLeftElement) freezeTopLeftItems.push(extraTopLeftElement);
-      }
-
       // Read this value AFTER items have been created,
       // So their actual sizes (if variable) are taken into consideration.
       const estimatedTotalHeight = getEstimatedTotalHeight(
@@ -533,58 +456,12 @@ export default function createGridComponent({
         this._instanceProps
       );
 
-      if (freezeBottomLeftItems.length) {
-        const topLeftStyle = this._getItemStyle(
-          freezeRowCount,
-          freezeColumnCount
-        );
-        items.unshift(
-          createElement('div', {
-            children: freezeBottomLeftItems,
-            key: 'bottom-left-pane',
-            style: {
-              height: estimatedTotalHeight,
-              width: topLeftStyle.left,
-              position: 'sticky',
-              left: 0,
-              zIndex: 100000,
-              top: 0,
-              // transform: `translateY(-${topLeftStyle.top}px)`,
-              background: 'rgb(255, 255, 255)',
-            },
-          })
-        );
-      }
-
-      if (freezeTopRightItems.length) {
-        // top-left cell in the bottom-right pane
-        const topLeftStyle = this._getItemStyle(
-          freezeRowCount,
-          freezeColumnCount
-        );
-        items.unshift(
-          createElement('div', {
-            children: freezeTopRightItems,
-            key: 'top-right-pane',
-            style: {
-              height: topLeftStyle.top,
-              width: estimatedTotalWidth,
-              position: 'sticky',
-              top: 0,
-              zIndex: 100000,
-              background: 'rgb(255, 255, 255)',
-            },
-          })
-        );
-      }
-
-      const outerElement = createElement(
+      return createElement(
         outerElementType || outerTagName || 'div',
         {
           className,
           onScroll: this._onScroll,
           ref: this._outerRefSetter,
-          key: 'outer-element',
           style: {
             position: 'relative',
             height,
@@ -604,31 +481,8 @@ export default function createGridComponent({
             pointerEvents: isScrolling ? 'none' : undefined,
             width: estimatedTotalWidth,
           },
-        }),
-        extraBottomRightElement
+        })
       );
-
-      if (freezeTopLeftItems.length) {
-        const topLeftStyle = this._getItemStyle(
-          freezeRowCount,
-          freezeColumnCount
-        );
-        return [
-          createElement('div', {
-            children: freezeTopLeftItems,
-            key: 'top-left-pane',
-            style: {
-              height: topLeftStyle.top,
-              width: topLeftStyle.left,
-              position: 'absolute',
-              zIndex: 100,
-              background: 'rgb(255, 255, 255)',
-            },
-          }),
-          outerElement,
-        ];
-      }
-      return outerElement;
     }
 
     _callOnItemsRendered: (
@@ -756,13 +610,16 @@ export default function createGridComponent({
       if (itemStyleCache.hasOwnProperty(key)) {
         style = itemStyleCache[key];
       } else {
+        const offset = getColumnOffset(
+          this.props,
+          columnIndex,
+          this._instanceProps
+        );
+        const isRtl = direction === 'rtl';
         itemStyleCache[key] = style = {
           position: 'absolute',
-          [direction === 'rtl' ? 'right' : 'left']: getColumnOffset(
-            this.props,
-            columnIndex,
-            this._instanceProps
-          ),
+          left: isRtl ? undefined : offset,
+          right: isRtl ? offset : undefined,
           top: getRowOffset(this.props, rowIndex, this._instanceProps),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
@@ -893,18 +750,19 @@ export default function createGridComponent({
 
         const { direction } = this.props;
 
+        // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
+        // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
+        // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
+        // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
         let calculatedScrollLeft = scrollLeft;
         if (direction === 'rtl') {
-          const isNegative = isRTLOffsetNegative();
-
-          // TRICKY According to the spec, scrollLeft should be negative for RTL aligned elements.
-          // This is not the case for all browsers though (e.g. Chrome reports values as positive, measured relative to the left).
-          // It's also easier for this component if we convert offsets to the same format as they would be in for ltr.
-          // So the simplest solution is to determine which browser behavior we're dealing with, and convert based on it.
-          if (isNegative) {
-            calculatedScrollLeft = -scrollLeft;
-          } else {
-            calculatedScrollLeft = scrollWidth - clientWidth - scrollLeft;
+          switch (getRTLOffsetType()) {
+            case 'negative':
+              calculatedScrollLeft = -scrollLeft;
+              break;
+            case 'positive-descending':
+              calculatedScrollLeft = scrollWidth - clientWidth - scrollLeft;
+              break;
           }
         }
 
