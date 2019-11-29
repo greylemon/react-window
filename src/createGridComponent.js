@@ -548,6 +548,7 @@ export default function createGridComponent({
               position: 'sticky',
               left: 0,
               zIndex: 100000,
+              top: 0,
               // transform: `translateY(-${topLeftStyle.top}px)`,
               background: 'rgb(255, 255, 255)',
             },
