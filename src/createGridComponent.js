@@ -564,6 +564,29 @@ export default function createGridComponent({
         );
       }
 
+      if (freezeTopLeftItems.length) {
+        const topLeftStyle = this._getItemStyle(
+          freezeRowCount,
+          freezeColumnCount
+        );
+        items.unshift(
+          createElement('div', {
+            children: freezeTopLeftItems,
+            key: 'top-left-pane',
+            style: {
+              top: 0,
+              left: 0,
+              float: "left",
+              height: topLeftStyle.top,
+              width: topLeftStyle.left,
+              position: 'sticky',
+              zIndex: 1000001,
+              background: 'rgb(255, 255, 255)',
+            },
+          }),
+        );
+      }
+
       const outerElement = createElement(
         outerElementType || outerTagName || 'div',
         {
@@ -594,26 +617,7 @@ export default function createGridComponent({
         extraBottomRightElement
       );
 
-      if (freezeTopLeftItems.length) {
-        const topLeftStyle = this._getItemStyle(
-          freezeRowCount,
-          freezeColumnCount
-        );
-        return [
-          createElement('div', {
-            children: freezeTopLeftItems,
-            key: 'top-left-pane',
-            style: {
-              height: topLeftStyle.top,
-              width: topLeftStyle.left,
-              position: 'absolute',
-              zIndex: 100,
-              background: 'rgb(255, 255, 255)',
-            },
-          }),
-          outerElement,
-        ];
-      }
+
       return outerElement;
     }
 
