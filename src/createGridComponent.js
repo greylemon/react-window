@@ -400,7 +400,7 @@ export default function createGridComponent({
       const freezeTopLeftItems = [];
       const freezeTopRightItems = [];
       const freezeBottomLeftItems = [];
-      if (columnCount > 0 && rowCount) {
+      if (columnCount > 0 && rowCount > 0) {
         for (
           let rowIndex = Math.max(freezeRowCount, rowStartIndex);
           rowIndex <= rowStopIndex;
@@ -576,14 +576,14 @@ export default function createGridComponent({
             style: {
               top: 0,
               left: 0,
-              float: "left",
+              float: 'left',
               height: topLeftStyle.top,
               width: topLeftStyle.left,
               position: 'sticky',
               zIndex: 1000001,
               background: 'rgb(255, 255, 255)',
             },
-          }),
+          })
         );
       }
 
@@ -616,7 +616,6 @@ export default function createGridComponent({
         }),
         extraBottomRightElement
       );
-
 
       return outerElement;
     }
