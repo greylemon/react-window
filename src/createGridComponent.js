@@ -534,7 +534,6 @@ export default function createGridComponent({
               width: topLeftStyle.left,
               position: 'sticky',
               left: 0,
-              top: -1,
               zIndex: 100000,
               background: 'rgb(255, 255, 255)',
             },
