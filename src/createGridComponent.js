@@ -609,9 +609,9 @@ export default function createGridComponent({
           children: items,
           ref: innerRef,
           style: {
-            height: estimatedTotalHeight,
+            height: estimatedTotalHeight + 1,
             pointerEvents: isScrolling ? 'none' : undefined,
-            width: estimatedTotalWidth,
+            width: estimatedTotalWidth + 1,
           },
         }),
         extraBottomRightElement
