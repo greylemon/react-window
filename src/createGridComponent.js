@@ -530,7 +530,7 @@ export default function createGridComponent({
             children: freezeBottomLeftItems,
             key: 'bottom-left-pane',
             style: {
-              height: estimatedTotalHeight - topLeftStyle.top,
+              height: estimatedTotalHeight - topLeftStyle.top + 1,
               width: topLeftStyle.left,
               position: 'sticky',
               left: 0,
@@ -554,7 +554,7 @@ export default function createGridComponent({
             key: 'top-right-pane',
             style: {
               height: topLeftStyle.top,
-              width: estimatedTotalWidth,
+              width: estimatedTotalWidth + 1,
               position: 'sticky',
               top: 0,
               zIndex: 100000,
@@ -609,9 +609,9 @@ export default function createGridComponent({
           children: items,
           ref: innerRef,
           style: {
-            height: estimatedTotalHeight + 1,
+            height: estimatedTotalHeight,
             pointerEvents: isScrolling ? 'none' : undefined,
-            width: estimatedTotalWidth + 1,
+            width: estimatedTotalWidth,
           },
         }),
         extraBottomRightElement
